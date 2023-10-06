@@ -1,7 +1,9 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.contrib import messages
-from accounts.forms import UserLoginForm, UserRegistrationForm, UserUpdateForm
+from accounts.forms import UserLoginForm, UserRegistrationForm, UserUpdateForm, ContactForm
+from scraping.models import Error
+import datetime as dt
 
 User = get_user_model()
 
@@ -36,6 +38,7 @@ def register_view(request):
 
 
 def update_view(request):
+    contact_form = ContactForm()
     if request.user.is_authenticated:
         user = request.user
         if request.method == 'POST':
@@ -50,7 +53,7 @@ def update_view(request):
                 return redirect('accounts:update')
 
         form = UserUpdateForm(initial={'city': user.city, 'language': user.language, 'send_email': user.send_email})
-        return render(request, 'accounts/update.html', {'form': form})
+        return render(request, 'accounts/update.html', {'form': form, 'contact_form': contact_form})
 
     else:
         return redirect('accounts:login')
@@ -65,3 +68,29 @@ def delete_view(request):
             messages.error(request, 'Пользователь удален')
 
     return redirect('home')
+
+
+def contact(request):
+    if request.method == 'POST':
+        contact_form = ContactForm(request.POST or None)
+        if contact_form.is_valid():
+            data = contact_form.cleaned_data
+            city = data.get('city')
+            language = data.get('language')
+            email = data.get('email')
+            qs = Error.objects.filter(timestap=dt.date.today())
+            if qs.exists():
+                err = qs.first()
+                data = err.data.get('user_data', [])
+                data.appand([{'city': city, 'email': email, 'language': language}])
+                err.data['user_data'] = data
+                err.save()
+            else:
+                data = [{'city': city, 'email': email, 'language': language}]
+                Error(data=f"user_data:{data}").save()
+            messages.success(request, 'Данные отправлены администрации ')
+            return redirect('accounts:update')
+        else:
+            return redirect('accounts:update')
+    else:
+        return redirect('accounts:login')

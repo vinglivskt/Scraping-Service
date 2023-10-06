@@ -15,9 +15,39 @@
             <form method="POST" action="{% url 'accounts:delete' %}"> {% csrf_token %}
   <button type="submit" class="btn btn-danger my-3">Удалить</button>
 </form>
+        </div>
+    </div>
+
+
+
+       <div class="row mx-auto">
+        <div class="col-md-8 mx-auto">
+            <p class="my-2">Если Вы не нашли подходящий набор Город, Специальность.
+                Вы можете заполнить  форму ниже с Вашими пожеланиями. Данные будут добавлены.
+                Далее вы получите письмо на эмайл.
+    <p>
+
+      <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#collapsed" aria-expanded="false" aria-controls="collapseExample">
+        Показать форму
+      </button>
+    </p>
+    <div class="collapse" id="collapsed">
+      <div class="card card-body">
+           <form method="POST" action="{% url 'accounts:contact' %}"> {% csrf_token %}
+                <div class="form-group">
+                {{ contact_form.as_p }}
+          </div>
+          <button type="submit" class="btn btn-primary">Отправить</button>
+        </form>
+
+      </div>
+    </div>
 
 
         </div>
     </div>
+
+
+
 
 {% endblock %}
